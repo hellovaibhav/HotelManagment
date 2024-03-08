@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import Rooms from "./roomsModel.js";
 
 const bookingSchema = new mongoose.Schema({
     guestName:{
@@ -11,7 +12,7 @@ const bookingSchema = new mongoose.Schema({
     },
     roomId:{
         type:mongoose.Schema.ObjectId,
-        ref:"roomsDB",
+        ref:"Rooms",
         required:true,
     },
     roomNumber:{

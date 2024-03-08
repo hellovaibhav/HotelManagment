@@ -1,5 +1,6 @@
 import Bookings from "../models/bookingsModel.js";
 import Room from "../models/roomsModel.js";
+import { sendMail } from "../utils/mail.util.js";
 
 const parseDateTime = (dateString, timeString) => {
     const [day, month, year] = dateString.split('/').map(Number);
@@ -101,6 +102,8 @@ const roomsController = {
                 })
                 // console.log(newBooking);
                 const savedBooking = await newBooking.save();
+
+                await sendMail(startTime,startDate,endTime,endDate,newBooking);
 
                 res.status(200).json({ message: "Room booked successfully", data: { ...savedBooking._doc } });
             } else {

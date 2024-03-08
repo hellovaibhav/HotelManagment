@@ -40,22 +40,20 @@ const bookingController = {
             const filter = {};
 
             if (startDate) {
-                if(!startTime)
-                {
-                    startTime= "00:00"
+                if (!startTime) {
+                    startTime = "00:00"
                 }
                 const parsedStartDateTime = parseDateTime(startDate, startTime);
 
                 filter.startDateTime = { $gte: parsedStartDateTime };
             }
             if (endDate) {
-                if(!startTime)
-                {
-                    endTime= "23:59"
+                if (!endTime) {
+                    endTime = "23:59"
                 }
                 const parsedEndDateTime = parseDateTime(endDate, endTime);
 
-                filter.startDateTime = { $gte: parsedEndDateTime };
+                filter.endDateTime = { $gte: parsedEndDateTime };
             }
 
             if (roomNumber) {
@@ -65,14 +63,19 @@ const bookingController = {
             if (status) {
                 filter.status = status;
             }
-            if (roomType) {
-                filter.roomType = roomType;
-            }
+
+            console.log({...filter});
+           
 
             // Fetch bookings based on the filter
-            const bookings = await Bookings.find(filter);
+            const bookings = await Bookings.find({...filter})
+                .populate({
+                    path: "roomId",
+                    model: "Rooms",
+                    match: { roomType: roomType }
+                })
+                .exec();
 
-            // Return the bookings
             res.status(200).json({ message: "Found bookings", data: bookings });
         } catch (err) {
             res.status(500).json({ message: "There was an error fetching bookings", data: `${err}` });
@@ -126,11 +129,11 @@ const bookingController = {
                     roomId: newRoom._id,
                     roomNumber: newRoom.roomNumber,
                     amountRecived: foundRoom.price || req.body.amountRecived
-                },{new:true});
+                }, { new: true });
 
                 // console.log(JSON.stringify(updateBooking));
 
-                res.status(200).json({ message: "Booking details edited", Data: updateBooking  });
+                res.status(200).json({ message: "Booking details edited", Data: updateBooking });
 
             } else {
                 res.status(400).json({ message: "Room is already booked during the specified time range" });
@@ -175,9 +178,8 @@ const bookingController = {
             } else if (timeDifferenceHours >= 24 && timeDifferenceHours <= 48) {
                 refundPercentage = 50;
             }
-            if(timeDifferenceHours<=0)
-            {
-                res.status(404).json({message:"Cant cancel bookings which are booked in past"})
+            if (timeDifferenceHours <= 0) {
+                res.status(404).json({ message: "Cant cancel bookings which are booked in past" })
             }
 
             // Calculate the refund amount

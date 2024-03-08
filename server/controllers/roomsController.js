@@ -16,7 +16,7 @@ const roomsController = {
 
             await newRoom.save();
 
-            return res.status(200).json({ message: `room has been added successfully`, data: {...newRoom._doc} });
+            return res.status(200).json({ message: `room has been added successfully`, data: { ...newRoom._doc } });
         } catch (err) {
 
             return res.status(404).json({ message: `there was some error adding room`, data: `${err}` });
@@ -42,7 +42,7 @@ const roomsController = {
                     { startDateTime: { $gte: parsedStartDateTime, $lte: parsedEndDateTime } }
                 ]
             });
-            
+
 
             // console.log(overlappingBookings);
             const bookedRoomNumbers = overlappingBookings.map(booking => booking.roomNumber);
@@ -52,10 +52,10 @@ const roomsController = {
                 roomNumber: { $nin: bookedRoomNumbers }
             });
 
-            res.status(200).json({ message:"found rooms", availableRooms });
+            res.status(200).json({ message: "found rooms", availableRooms });
 
 
-        }catch(err){
+        } catch (err) {
             res.status(404).json({ message: "There was an error finding rooms" });
         }
     },
@@ -96,18 +96,32 @@ const roomsController = {
                     startDateTime: parsedStartDateTime,
                     endDateTime: parsedEndDateTime,
                     roomId: roomId,
-                    roomNumber:foundRoom.roomNumber,
+                    roomNumber: foundRoom.roomNumber,
                     amountRecived: req.body.amountRecived || foundRoom.price
                 })
                 // console.log(newBooking);
                 const savedBooking = await newBooking.save();
 
-                res.status(200).json({ message: "Room booked successfully", data: {...savedBooking._doc} });
+                res.status(200).json({ message: "Room booked successfully", data: { ...savedBooking._doc } });
             } else {
                 res.status(400).json({ message: "Room is already booked during the specified time range" });
             }
 
- 
+
+        } catch (err) {
+            res.status(404).json({ message: "There was an error booking this room", data: `${err}` });
+        }
+    },
+    findRoom: async (req, res) => {
+        try {
+            const roomId = req.params.roomId;
+
+            const foundRoom = await Room.findById(roomId);
+
+            if(!foundRoom)
+            res.status(404).json({ message: "No room with such id found"});
+
+            res.status(200).json({ message: "Found room Details", data: { ...foundRoom._doc } });
         } catch (err) {
             res.status(404).json({ message: "There was an error booking this room", data: `${err}` });
         }

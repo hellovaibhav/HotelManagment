@@ -16,4 +16,8 @@ router
 .route("/bookRoom/:roomId")
 .post(roomsController.bookRoom);
 
+router
+.route("/findRoom/:roomId")
+.get(roomsController.findRoom);
+
 export default router;

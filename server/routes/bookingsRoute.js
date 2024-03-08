@@ -12,4 +12,12 @@ router.
 route("/update/:bookingId")
 .patch(bookingController.updateBooking);
 
+router.
+route("/")
+.get(bookingController.bookingsList);
+
+router.
+route("/cancel/:bookingId")
+.patch(bookingController.cancelBooking);
+
 export default router;

@@ -25,6 +25,59 @@ const bookingController = {
             return res.status(404).json({ message: `there was some error getting details of the booking`, data: `${err}` });
         }
     },
+    bookingsList: async (req, res) => {
+        try {
+            // Extract filter parameters from the request query
+            const startDate = req.body.startDate;
+            const endDate = req.body.endDate;
+            const startTime = req.body.startTime;
+            const endTime = req.body.endTime;
+            const roomNumber = req.query.roomNumber;
+            const status = req.query.status;
+            const roomType = req.query.roomType;
+
+            // Build the filter object based on the provided parameters
+            const filter = {};
+
+            if (startDate) {
+                if(!startTime)
+                {
+                    startTime= "00:00"
+                }
+                const parsedStartDateTime = parseDateTime(startDate, startTime);
+
+                filter.startDateTime = { $gte: parsedStartDateTime };
+            }
+            if (endDate) {
+                if(!startTime)
+                {
+                    endTime= "23:59"
+                }
+                const parsedEndDateTime = parseDateTime(endDate, endTime);
+
+                filter.startDateTime = { $gte: parsedEndDateTime };
+            }
+
+            if (roomNumber) {
+                filter.roomNumber = roomNumber;
+            }
+
+            if (status) {
+                filter.status = status;
+            }
+            if (roomType) {
+                filter.roomType = roomType;
+            }
+
+            // Fetch bookings based on the filter
+            const bookings = await Bookings.find(filter);
+
+            // Return the bookings
+            res.status(200).json({ message: "Found bookings", data: bookings });
+        } catch (err) {
+            res.status(500).json({ message: "There was an error fetching bookings", data: `${err}` });
+        }
+    },
     updateBooking: async (req, res) => {
         try {
 
@@ -35,7 +88,9 @@ const bookingController = {
             const roomId = foundBooking.roomId;
 
             const foundRoom = await Room.findById(roomId);
-            
+
+            const inputRoomNumber = req.body.roomNumber || foundRoom.roomNumber;
+
 
             if (!foundBooking) {
                 return res.status(404).json({ message: `no booking with this id exists` });
@@ -49,9 +104,10 @@ const bookingController = {
             const parsedStartDateTime = parseDateTime(startDate, startTime);
             const parsedEndDateTime = parseDateTime(endDate, endTime);
 
+            // console.log(inputRoomNumber);
 
             const overlappingBookings = await Bookings.find({
-                roomId: roomId,
+                roomNumber: inputRoomNumber,
                 _id: { $ne: bookingId },
                 status: { $nin: ["Cancelled", "Checked-Out"] },
                 $or: [
@@ -60,28 +116,86 @@ const bookingController = {
                 ]
             });
 
+            const newRoom = await Room.findOne({ roomNumber: inputRoomNumber });
+
             if (overlappingBookings.length === 0) {
-                const newBooking = new Bookings({
+                const updateBooking = await Bookings.findByIdAndUpdate(bookingId, {
                     ...req.body,
                     startDateTime: parsedStartDateTime,
                     endDateTime: parsedEndDateTime,
-                    roomId: roomId,
-                    roomNumber: foundRoom.roomNumber,
+                    roomId: newRoom._id,
+                    roomNumber: newRoom.roomNumber,
                     amountRecived: foundRoom.price || req.body.amountRecived
-                });
+                },{new:true});
 
-                await newBooking.save();
+                // console.log(JSON.stringify(updateBooking));
 
-                res.status(200).json({message:"Booking details edited",Data:{...newBooking._doc}});
+                res.status(200).json({ message: "Booking details edited", Data: updateBooking  });
 
             } else {
                 res.status(400).json({ message: "Room is already booked during the specified time range" });
             }
 
-            
+
 
         } catch (err) {
             return res.status(404).json({ message: `there was some error updating details of this booking`, data: `${err}` });
+        }
+    },
+    cancelBooking: async (req, res) => {
+        try {
+
+            const bookingId = req.params.bookingId;
+
+            const foundBooking = await Bookings.findById(bookingId);
+
+
+
+
+            if (!foundBooking) {
+                return res.status(404).json({ message: `no booking with this id exists` });
+            }
+
+            const roomId = foundBooking.roomId;
+            const foundRoom = await Room.findById(roomId);
+
+            const currentTime = new Date();
+            const bookingStartTime = foundBooking.startDateTime;
+
+            // Calculate the time difference in hours
+            const timeDifferenceHours = (bookingStartTime - currentTime) / (60 * 60 * 1000);
+
+            console.log(timeDifferenceHours);
+
+            let refundPercentage = 0;
+
+            // Determine refund percentage based on the time difference
+            if (timeDifferenceHours > 48) {
+                refundPercentage = 100;
+            } else if (timeDifferenceHours >= 24 && timeDifferenceHours <= 48) {
+                refundPercentage = 50;
+            }
+            if(timeDifferenceHours<=0)
+            {
+                res.status(404).json({message:"Cant cancel bookings which are booked in past"})
+            }
+
+            // Calculate the refund amount
+            const refundAmount = (refundPercentage / 100) * foundBooking.amountRecived;
+            console.log(`refund amount is ${refundAmount}`);
+            // Update the booking status and refund details
+            foundBooking.status = "Cancelled";
+            foundBooking.refund = refundAmount;
+            foundBooking.amountRecived = foundBooking.amountRecived - refundAmount;
+            foundBooking.checkoutTime = currentTime;
+
+            await foundBooking.save();
+
+            res.status(200).json({ message: "Booking cancelled successfully", Data: { ...foundBooking._doc } });
+
+
+        } catch (err) {
+            return res.status(404).json({ message: `there was some error cancelling this booking`, data: `${err}` });
         }
     }
 }

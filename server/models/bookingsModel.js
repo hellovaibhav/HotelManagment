@@ -9,14 +9,18 @@ const bookingSchema = new mongoose.Schema({
         type:String,
         required:true
     },
-    roomNumber:{
+    roomId:{
         type:mongoose.Schema.ObjectId,
         ref:"roomsDB",
         required:true,
     },
+    roomNumber:{
+        type:Number,
+        required:true
+    },
     status:{
         type:String,
-        enum:["Booked","Cancelled"],
+        enum:["Booked","Cancelled","Checked-Out"],
         default:"Booked"
     },
     startDateTime:{
@@ -34,6 +38,10 @@ const bookingSchema = new mongoose.Schema({
     refund:{
         type:Number,
         default:0
+    },
+    checkoutTime:{
+        type:Date,
+        default:null
     }
 });
 

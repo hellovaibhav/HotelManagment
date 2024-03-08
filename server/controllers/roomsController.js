@@ -16,7 +16,7 @@ const roomsController = {
 
             await newRoom.save();
 
-            return res.status(200).json({ message: `room has been added successfully`, data: `${newRoom}` });
+            return res.status(200).json({ message: `room has been added successfully`, data: {...newRoom._doc} });
         } catch (err) {
 
             return res.status(404).json({ message: `there was some error adding room`, data: `${err}` });
@@ -33,30 +33,29 @@ const roomsController = {
             const parsedStartDateTime = parseDateTime(startDate, startTime);
             const parsedEndDateTime = parseDateTime(endDate, endTime);
 
-            console.log(parsedEndDateTime);
+            // console.log(parsedEndDateTime);
 
             const overlappingBookings = await Bookings.find({
-                roomNumber: req.query.roomNumber,
-                status: { $ne: "Cancelled" },
+                status: { $nin: ["Cancelled", "Checked-Out"] },
                 $or: [
-                    { startDateTime: { $gte: parsedStartDateTime, $lte: parsedEndDateTime } },
-                    { endDateTime: { $gte: parsedStartDateTime, $lte: parsedEndDateTime } },
-                    { $and: [{ startDateTime: { $lte: parsedStartDateTime } }, { endDateTime: { $gte: parsedEndDateTime } }] },
-                    { $and: [{ startDateTime: { $gte: parsedStartDateTime } }, { endDateTime: { $lte: parsedEndDateTime } }] }
+                    { startDateTime: { $lt: parsedEndDateTime }, endDateTime: { $gt: parsedStartDateTime } },
+                    { startDateTime: { $gte: parsedStartDateTime, $lte: parsedEndDateTime } }
                 ]
             });
+            
 
-            console.log(overlappingBookings);
+            // console.log(overlappingBookings);
             const bookedRoomNumbers = overlappingBookings.map(booking => booking.roomNumber);
+            // console.log(bookedRoomNumbers);
 
             const availableRooms = await Room.find({
                 roomNumber: { $nin: bookedRoomNumbers }
             });
 
-            res.status(200).json({ availableRooms });
+            res.status(200).json({ message:"found rooms", availableRooms });
 
 
-        } catch (err) {
+        }catch(err){
             res.status(404).json({ message: "There was an error finding rooms" });
         }
     },
@@ -83,35 +82,32 @@ const roomsController = {
 
 
             const overlappingBookings = await Bookings.find({
-                roomNumber: roomId,
-                status: { $ne: "Cancelled" },
+                roomId: roomId,
+                status: { $nin: ["Cancelled", "Checked-Out"] },
                 $or: [
                     { startDateTime: { $lt: parsedEndDateTime }, endDateTime: { $gt: parsedStartDateTime } },
                     { startDateTime: { $gte: parsedStartDateTime, $lte: parsedEndDateTime } }
                 ]
             });
 
-            console.log(overlappingBookings)
-
-            // if amount is not entered by the user the original set amount is being used
-
             if (overlappingBookings.length === 0) {
                 const newBooking = new Bookings({
                     ...req.body,
                     startDateTime: parsedStartDateTime,
                     endDateTime: parsedEndDateTime,
-                    roomNumber: roomId,
+                    roomId: roomId,
+                    roomNumber:foundRoom.roomNumber,
                     amountRecived: req.body.amountRecived || foundRoom.price
                 })
-                console.log(newBooking);
+                // console.log(newBooking);
                 const savedBooking = await newBooking.save();
 
-                res.status(200).json({ message: "Room booked successfully", Data: `${savedBooking}` });
+                res.status(200).json({ message: "Room booked successfully", data: {...savedBooking._doc} });
             } else {
                 res.status(400).json({ message: "Room is already booked during the specified time range" });
             }
 
-
+ 
         } catch (err) {
             res.status(404).json({ message: "There was an error booking this room", data: `${err}` });
         }

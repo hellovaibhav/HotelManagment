@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import express from "express";
 
 import roomsRoute from "./routes/roomsRoute.js"
+import bookingsRoute from "./routes/bookingsRoute.js"
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ mongoose.connection.on("disconnected", () => {
 // all routes
 app.get("/",(req,res)=>{res.status(200).send("Server is up and running")});
 app.use("/api/v1/rooms",roomsRoute);
+app.use("/api/v1/bookings",bookingsRoute);
 
 
 

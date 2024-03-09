@@ -9,6 +9,7 @@ const parseDateTime = (dateString, timeString) => {
 };
 
 const roomsController = {
+    //  to add a room in the hotel management system
     createRoom: async (req, res) => {
         try {
             const newRoom = new Room({
@@ -23,7 +24,7 @@ const roomsController = {
             return res.status(404).json({ message: `there was some error adding room`, data: `${err}` });
         }
     },
-
+//  to find rooms which are available in the input date day range
     findRooms: async (req, res) => {
         try {
             const startDate = req.body.startDate;
@@ -64,6 +65,7 @@ const roomsController = {
             res.status(404).json({ message: "There was an error finding rooms" });
         }
     },
+    // to book a room with provided details
     bookRoom: async (req, res) => {
         try {
 
@@ -139,6 +141,7 @@ const roomsController = {
                 // console.log(newBooking);
                 const savedBooking = await newBooking.save();
 
+                // send a confirmation mail to the guest regarding his/her booking
                 await sendMail(startTime, startDate, endTime, endDate, newBooking);
 
                 res.status(200).json({ message: "Room booked successfully", data: { ...savedBooking._doc } });
@@ -151,6 +154,7 @@ const roomsController = {
             res.status(404).json({ message: "There was an error booking this room", data: `${err}` });
         }
     },
+    // to fetch detials regarding a single room using roomId
     findRoom: async (req, res) => {
         try {
             const roomId = req.params.roomId;

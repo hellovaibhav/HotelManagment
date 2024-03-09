@@ -2,6 +2,7 @@ import Bookings from "../models/bookingsModel.js";
 import Room from "../models/roomsModel.js";
 import { sendCancellationMail } from "../utils/mail.util.js";
 
+// function to convert date from string to javascript format
 const parseDateTime = (dateString, timeString) => {
     const [day, month, year] = dateString.split('/').map(Number);
     const [hours, minutes] = timeString.split(':').map(Number);
@@ -9,6 +10,7 @@ const parseDateTime = (dateString, timeString) => {
 };
 
 const bookingController = {
+    // to get booking details using a particular bookingId
     bookingDetails: async (req, res) => {
         try {
 
@@ -26,6 +28,7 @@ const bookingController = {
             return res.status(404).json({ message: `there was some error getting details of the booking`, data: `${err}` });
         }
     },
+    // to list all the bookings which have been done and applying filters accordingly
     bookingsList: async (req, res) => {
         try {
             // Extract filter parameters from the request query
@@ -87,6 +90,7 @@ const bookingController = {
             res.status(500).json({ message: "There was an error fetching bookings", data: `${err}` });
         }
     },
+    // to make changes in any of the booking
     updateBooking: async (req, res) => {
         try {
 
@@ -172,6 +176,7 @@ const bookingController = {
             return res.status(404).json({ message: `there was some error updating details of this booking`, data: `${err}` });
         }
     },
+    // to cancel a booking
     cancelBooking: async (req, res) => {
         try {
 
@@ -223,6 +228,7 @@ const bookingController = {
 
             await foundBooking.save();
 
+            // to send a mail to the guest regarding cancellation of his/her booking and refunded amount
             await sendCancellationMail(foundBooking);
 
             res.status(200).json({ message: "Booking cancelled successfully", Data: { ...foundBooking._doc } });
@@ -232,6 +238,7 @@ const bookingController = {
             return res.status(404).json({ message: `there was some error cancelling this booking`, data: `${err}` });
         }
     },
+    // to mark a booking as checkd-out  by the guest
     checkoutBooking: async (req, res) => {
         try {
 

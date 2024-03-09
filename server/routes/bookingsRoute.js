@@ -20,4 +20,8 @@ router.
 route("/cancel/:bookingId")
 .patch(bookingController.cancelBooking);
 
+router.
+route("/checkout/:bookingId")
+.patch(bookingController.checkoutBooking);
+
 export default router;

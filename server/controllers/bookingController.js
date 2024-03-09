@@ -46,7 +46,7 @@ const bookingController = {
                 if (!startTime) {
                     startTime = "00:00"
                 }
-                 parsedStartDateTime = parseDateTime(startDate, startTime);
+                parsedStartDateTime = parseDateTime(startDate, startTime);
 
                 filter.startDateTime = { $gte: parsedStartDateTime };
             }
@@ -54,14 +54,13 @@ const bookingController = {
                 if (!endTime) {
                     endTime = "23:59"
                 }
-                 parsedEndDateTime = parseDateTime(endDate, endTime);
+                parsedEndDateTime = parseDateTime(endDate, endTime);
 
                 filter.endDateTime = { $lte: parsedEndDateTime };
             }
 
-            if(parsedStartDateTime >= parsedEndDateTime)
-            {
-                return res.status(403).json({message:"start date and time can't be equal to or greater than end date and time"});
+            if (parsedStartDateTime >= parsedEndDateTime) {
+                return res.status(403).json({ message: "start date and time can't be equal to or greater than end date and time" });
             }
 
             if (roomNumber) {
@@ -72,11 +71,11 @@ const bookingController = {
                 filter.status = status;
             }
 
-            console.log({...filter});
-           
+            console.log({ ...filter });
+
 
             // Fetch bookings based on the filter
-            const bookings = await Bookings.find({...filter})
+            const bookings = await Bookings.find({ ...filter })
                 .populate({
                     path: "roomId",
                     model: "Rooms",
@@ -117,9 +116,8 @@ const bookingController = {
 
             // console.log(inputRoomNumber);
 
-            if(parsedStartDateTime >= parsedEndDateTime)
-            {
-                return res.status(403).json({message:"start date and time can't be equal to or greater than end date and time"});
+            if (parsedStartDateTime >= parsedEndDateTime) {
+                return res.status(403).json({ message: "start date and time can't be equal to or greater than end date and time" });
             }
 
             const overlappingBookings = await Bookings.find({
@@ -136,22 +134,22 @@ const bookingController = {
 
             if (overlappingBookings.length === 0) {
 
-                 // Calculate total hours
-                 const totalHours = Math.floor((parsedEndDateTime - parsedStartDateTime) / (60 * 60 * 1000));
+                // Calculate total hours
+                const totalHours = Math.floor((parsedEndDateTime - parsedStartDateTime) / (60 * 60 * 1000));
 
-                 // Round down start and end times to the nearest whole hour
-                 const roundedStartDateTime = new Date(parsedStartDateTime);
-                 roundedStartDateTime.setMinutes(0, 0, 0);
- 
-                 const roundedEndDateTime = new Date(parsedEndDateTime);
-                 roundedEndDateTime.setMinutes(0, 0, 0);
- 
-                 // Calculate total whole hours
-                 const totalWholeHours = Math.floor((roundedEndDateTime - roundedStartDateTime) / (60 * 60 * 1000));
- 
-                 // Multiply total whole hours with the price
-                 const totalPrice = totalWholeHours * foundRoom.price;
- 
+                // Round down start and end times to the nearest whole hour
+                const roundedStartDateTime = new Date(parsedStartDateTime);
+                roundedStartDateTime.setMinutes(0, 0, 0);
+
+                const roundedEndDateTime = new Date(parsedEndDateTime);
+                roundedEndDateTime.setMinutes(0, 0, 0);
+
+                // Calculate total whole hours
+                const totalWholeHours = Math.floor((roundedEndDateTime - roundedStartDateTime) / (60 * 60 * 1000));
+
+                // Multiply total whole hours with the price
+                const totalPrice = totalWholeHours * foundRoom.price;
+
                 const updateBooking = await Bookings.findByIdAndUpdate(bookingId, {
                     ...req.body,
                     startDateTime: parsedStartDateTime,
@@ -183,6 +181,9 @@ const bookingController = {
             const foundBooking = await Bookings.findById(bookingId);
 
 
+            if (foundBooking.status == "Cancelled" || foundBooking.status == "Checked-Out") {
+                return res.status(403).json({ message: "Can't cancel booking for already cancelled or checked-out booking" });
+            }
 
 
             if (!foundBooking) {
@@ -223,9 +224,44 @@ const bookingController = {
 
             await foundBooking.save();
 
-           await sendCancellationMail(startTime, startDate, endTime, endDate, foundBooking);
+            await sendCancellationMail(foundBooking);
 
             res.status(200).json({ message: "Booking cancelled successfully", Data: { ...foundBooking._doc } });
+
+
+        } catch (err) {
+            return res.status(404).json({ message: `there was some error cancelling this booking`, data: `${err}` });
+        }
+    },
+    checkoutBooking: async (req, res) => {
+        try {
+
+            const bookingId = req.params.bookingId;
+
+            const foundBooking = await Bookings.findById(bookingId);
+
+
+            if (foundBooking.status == "Cancelled" || foundBooking.status == "Checked-Out") {
+                return res.status(403).json({ message: "Can't checkout for already cancelled or checked-out booking" });
+            }
+
+
+            if (!foundBooking) {
+                return res.status(404).json({ message: `no booking with this id exists` });
+            }
+
+            const roomId = foundBooking.roomId;
+
+            const currentTime = new Date();
+
+
+            // Update the booking status and refund details
+            foundBooking.status = "Checked-Out";
+            foundBooking.checkoutTime = currentTime;
+
+            await foundBooking.save();
+
+            res.status(200).json({ message: "Checked-Out successfully", Data: { ...foundBooking._doc } });
 
 
         } catch (err) {

@@ -46,17 +46,17 @@ export const sendMail = async (startTime, startDate, endTime, endDate, body) => 
 
 };
 
-export const sendCancellationMail = async (startTime, startDate, endTime, endDate, body) => {
+export const sendCancellationMail = async (body) => {
     try {
         var mailOptions = {
             from: senderMail,
             to: body.guestEmail,
-            subject: `${body.guestName} your Room has been Booked`,
-            text: `You booking for room number ${body.roomNumber} from ${startDate} at ${startTime} to ${endDate} at ${endTime} has been cancelled amount refunded is ${body.refund}`,
-            html: `<html><body align=\"center\" bgcolor=\"#EDF1D6\"><p>Your booking has been cancelled for room number </p><br><h1> ${body.roomNumber}</h1><br><p>amount refunded is</p><h1>${body.refund}</h1><h2>${startDate} ${startTime} </h2>to <h2>${endDate} ${endTime}  </h2><br><br><br><p align=\"left\"> This is a system generated email. Please do not reply to this message. </p> <br><br><div align=\"left\"><h4>Hotel Managment System</h4><h5>Reminder Mail | HM <br>dev.vbhv@gmail.com<br></h5><h6>IIIT Ranchi, Khelgaon Campus, Ranchi, Jharkhand</h6></div></body></html>`
+            subject: `${body.guestName}  your room booking has been cancelled`,
+            text: `You booking for room number ${body.roomNumber} has been cancelled amount refunded is ${body.refund}`,
+            html: `<html><body align=\"center\" bgcolor=\"#EDF1D6\"><p>Your booking has been cancelled for room number </p><br><h1> ${body.roomNumber}</h1><br><p>amount refunded is</p><h1>${body.refund}</h1><br><br><br><p align=\"left\"> This is a system generated email. Please do not reply to this message. </p> <br><br><div align=\"left\"><h4>Hotel Managment System</h4><h5>Reminder Mail | HM <br>dev.vbhv@gmail.com<br></h5><h6>IIIT Ranchi, Khelgaon Campus, Ranchi, Jharkhand</h6></div></body></html>`
         };
 
-        await transporter.sendMail(mailOptions, function (error, info) {
+        transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
                 console.log(error);
                 // throw (err);

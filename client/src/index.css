@@ -33,7 +33,7 @@
         @apply p-2 rounded-md bg-lightPrimary  inline-block transition-all duration-500 text-center w-full md:w-[50%] text-xl
     }
     .bg{
-        @apply bg-gradient-to-t from-purple to-purple/60
+        @apply bg-purple
     }
 
 }

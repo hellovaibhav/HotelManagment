@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState } from 'react'
-import { ToggleNav } from '../components/SideNavbar'
 import BookingRooms from '../components/BookingRooms';
 const RoomContext = createContext({});
 
@@ -9,8 +8,7 @@ const Bookings = () => {
         <RoomContext.Provider value={{ room, setRoom }}>
 
 
-            <div className='bg w-full min-h-screen'>
-                <ToggleNav />
+            <div className='bg-white w-full min-h-screen'>
                 <BookingRooms />
                 {/* <InputFields /> */}
                 {/* {

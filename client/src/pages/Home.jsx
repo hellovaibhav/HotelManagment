@@ -13,7 +13,7 @@ const Home = () => {
         <RoomContext.Provider value={{ room, setRoom }}>
             <>
 
-                <div className='bg w-full min-h-screen'>
+                <div className='bg-white w-full min-h-screen'>
                     <RoomBookResults />
                     {/* <InputFields /> */}
                     {/* {

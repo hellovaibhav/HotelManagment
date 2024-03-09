@@ -11,17 +11,23 @@ const SearchBookings = () => {
         endTime: '',
         startDate: '',
         endDate: '',
+        type: '',
+        text: '',
+        status: ''
     })
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const { data: { data: da } } = await axios.post('https://hotelmanagment.onrender.com/api/v1/bookings', data);
+        console.log(data)
+        const { data: { data: da } } = await axios.post(`https://hotelmanagment.onrender.com/api/v1/bookings/?roomNumber=${data.text}&roomType=${data.type}&status=${data.status}`, data);
         if (da) {
             setBookedRoomsData(da)
         }
         console.log(da);
     }
-    return (
-        <div className='flex gap-8 bg flex-col w-full'>
+    return (<div className='flex w-full flex-col'>
+
+        <div className='flex gap-8 bg flex-col w-full sticky top-0 py-4'>
             <ToggleNav />
 
             <div className='flex gap-4 justify-around items-center'>
@@ -48,9 +54,26 @@ const SearchBookings = () => {
                     </label>
                 </div>
             </div>
+            <div className='flex items-center justify-center gap-10'>
+                <select name="type" onChange={(e) => setData({ ...data, type: e.target.value })} className='p-2 rounded-md'>
+                    <option value="">Select Type</option>
+                    <option value="Delux">Delux</option>
+                    <option value="Non-AC">Non-Ac</option>
+                    <option value="AC">AC</option>
+                </select>
+                <select name="status" onChange={(e) => setData({ ...data, status: e.target.value })} className='p-2 rounded-md'>
+                    <option value="">Select Status</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Booked">Booked</option>
+                    <option value="Checked-Out">Checked Out</option>
+                </select>
+                <input type="text" placeholder='Search room number' onChange={(e) => setData({ ...data, text: e.target.value })} className='p-2 rounded-md' />
+            </div>
+
             <div className='mx-auto md:w-[10%] px-4 p-2 text-center rounded-md cursor-pointer bg-green-400 text-white' onClick={handleSubmit}>Search</div>
-            <Outlet />
         </div>
+        <Outlet />
+    </div>
     )
 }
 

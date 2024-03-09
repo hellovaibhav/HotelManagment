@@ -24,7 +24,7 @@ const App = () => {
             <ToggleSideNavbarContext.Provider value={{ sideNavToggle, setSideNavToggle }}>
                 <RoomContext.Provider value={{ room, setRoom }} >
                     <RoomsDataContext.Provider value={{ roomsData, setRoomsData }}>
-                        <div className="mx-auto w-auto md:px-[10%] flex bg-lightPrimary">
+                        <div className="mx-auto w-auto md:px-[10%] flex bg-white">
                             <SideNavbar />
                             <Routes>
                                 <Route element={<Search />} path="/" >

@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 4000;
 
 app.use(express.json());
 
-var allowedOrigins = ['http://localhost:3000','https://hotelmanagment-1.onrender.com'];
+var allowedOrigins = ['http://localhost:3000','https://hotelmanagment-1.onrender.com','https://hotel-managment-website.vercel.app'];
 
 const options = {
     origin: function (origin, callback) {

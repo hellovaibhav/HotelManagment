@@ -14,7 +14,7 @@ route("/update/:bookingId")
 
 router.
 route("/")
-.get(bookingController.bookingsList);
+.post(bookingController.bookingsList);
 
 router.
 route("/cancel/:bookingId")

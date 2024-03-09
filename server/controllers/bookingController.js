@@ -39,11 +39,13 @@ const bookingController = {
             // Build the filter object based on the provided parameters
             const filter = {};
 
+            let parsedEndDateTime, parsedStartDateTime;
+
             if (startDate) {
                 if (!startTime) {
                     startTime = "00:00"
                 }
-                const parsedStartDateTime = parseDateTime(startDate, startTime);
+                 parsedStartDateTime = parseDateTime(startDate, startTime);
 
                 filter.startDateTime = { $gte: parsedStartDateTime };
             }
@@ -51,9 +53,14 @@ const bookingController = {
                 if (!endTime) {
                     endTime = "23:59"
                 }
-                const parsedEndDateTime = parseDateTime(endDate, endTime);
+                 parsedEndDateTime = parseDateTime(endDate, endTime);
 
-                filter.endDateTime = { $gte: parsedEndDateTime };
+                filter.endDateTime = { $lte: parsedEndDateTime };
+            }
+
+            if(parsedStartDateTime >= parsedEndDateTime)
+            {
+                return res.status(403).json({message:"start date and time can't be equal to or greater than end date and time"});
             }
 
             if (roomNumber) {
@@ -108,6 +115,11 @@ const bookingController = {
             const parsedEndDateTime = parseDateTime(endDate, endTime);
 
             // console.log(inputRoomNumber);
+
+            if(parsedStartDateTime >= parsedEndDateTime)
+            {
+                return res.status(403).json({message:"start date and time can't be equal to or greater than end date and time"});
+            }
 
             const overlappingBookings = await Bookings.find({
                 roomNumber: inputRoomNumber,

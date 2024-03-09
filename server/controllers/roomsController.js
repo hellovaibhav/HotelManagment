@@ -34,6 +34,11 @@ const roomsController = {
             const parsedStartDateTime = parseDateTime(startDate, startTime);
             const parsedEndDateTime = parseDateTime(endDate, endTime);
 
+
+            if(parsedStartDateTime >= parsedEndDateTime)
+            {
+                return res.status(403).json({message:"start date and time can't be equal to or greater than end date and time"});
+            }
             // console.log(parsedEndDateTime);
 
             const overlappingBookings = await Bookings.find({
@@ -78,9 +83,16 @@ const roomsController = {
             const startTime = req.body.startTime;
             const endTime = req.body.endTime;
 
+            
+
             const parsedStartDateTime = parseDateTime(startDate, startTime);
             const parsedEndDateTime = parseDateTime(endDate, endTime);
 
+
+            if(parsedStartDateTime >= parsedEndDateTime)
+            {
+                return res.status(403).json({message:"start date and time can't be equal to or greater than end date and time"});
+            }
 
             const overlappingBookings = await Bookings.find({
                 roomId: roomId,

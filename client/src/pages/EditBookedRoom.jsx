@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react'
 import { RoomContext } from './Home'
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { getCurrentDate } from './Bookings';
 
 const EditBookedRoom = () => {
     let { room, setRoom } = useContext(RoomContext);
@@ -119,14 +120,14 @@ const EditBookedRoom = () => {
                             <label className='text-xl font-extralight w-[30%] md:w-[10%]'>
                                 Start Date
                             </label>
-                            <input type="date" className='bg-darkSecondary/60 w-full md:w-[30%] px-4 rounded-md p-2 text-darkPrimary' value={data.startDate} onChange={(e) => setdata({ ...data, startDate: e.target.value })} />
+                            <input type="date" min={getCurrentDate()} className='bg-darkSecondary/60 w-full md:w-[30%] px-4 rounded-md p-2 text-darkPrimary' value={data.startDate} onChange={(e) => setdata({ ...data, startDate: e.target.value })} />
                         </div>
 
                         <div className='flex text-xl gap-4 w-auto items-center'>
                             <label className='text-xl font-extralight w-[30%] md:w-[10%]'>
                                 End Date
                             </label>
-                            <input type="date" className='bg-darkSecondary/60 w-full md:w-[30%] px-4 rounded-md p-2 text-darkPrimary' value={data.endDate} onChange={(e) => setdata({ ...data, endDate: (e.target.value) })} />
+                            <input type="date" min={getCurrentDate()} className='bg-darkSecondary/60 w-full md:w-[30%] px-4 rounded-md p-2 text-darkPrimary' value={data.endDate} onChange={(e) => setdata({ ...data, endDate: (e.target.value) })} />
                         </div>
                         <div className='flex gap-4'>
 

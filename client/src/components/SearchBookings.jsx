@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom'
 import axios from 'axios'
 import { BookedRoomsDataContext } from '../App'
 import { ToggleNav } from './SideNavbar'
+import { getCurrentDate } from '../pages/Bookings'
 
 const SearchBookings = () => {
     let { setBookedRoomsData } = useContext(BookedRoomsDataContext)
@@ -35,11 +36,11 @@ const SearchBookings = () => {
 
                     <label className='flex gap-4 text-white items-center'>Start Date
 
-                        <input type="date" className='text-black p-2 rounded-md tracking-widest' onChange={(e) => setData({ ...data, startDate: e.target.value.split('-').reverse().join('/') })} />
+                        <input type="date" min={getCurrentDate()} className='text-black p-2 rounded-md tracking-widest' onChange={(e) => setData({ ...data, startDate: e.target.value.split('-').reverse().join('/') })} />
                     </label>
                     <label className='flex gap-4 text-white items-center'>End Date
 
-                        <input type="date" className='text-black p-2 rounded-md tracking-widest' onChange={(e) => setData({ ...data, endDate: e.target.value.split('-').reverse().join('/') })} />
+                        <input type="date" min={getCurrentDate()} className='text-black p-2 rounded-md tracking-widest' onChange={(e) => setData({ ...data, endDate: e.target.value.split('-').reverse().join('/') })} />
                     </label>
                 </div>
                 <div className='flex flex-col gap-4'>

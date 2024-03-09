@@ -31,8 +31,8 @@ const bookingController = {
             // Extract filter parameters from the request query
             const startDate = req.body.startDate;
             const endDate = req.body.endDate;
-            const startTime = req.body.startTime;
-            const endTime = req.body.endTime;
+            let startTime = req.body.startTime;
+            let endTime = req.body.endTime;
             const roomNumber = req.query.roomNumber;
             const status = req.query.status;
             const roomType = req.query.roomType;
@@ -40,7 +40,8 @@ const bookingController = {
             // Build the filter object based on the provided parameters
             const filter = {};
 
-            let parsedEndDateTime, parsedStartDateTime;
+            let parsedStartDateTime;
+            let parsedEndDateTime;
 
             if (startDate) {
                 if (!startTime) {
@@ -70,8 +71,6 @@ const bookingController = {
             if (status) {
                 filter.status = status;
             }
-
-            console.log({ ...filter });
 
 
             // Fetch bookings based on the filter

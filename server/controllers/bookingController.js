@@ -1,5 +1,6 @@
 import Bookings from "../models/bookingsModel.js";
 import Room from "../models/roomsModel.js";
+import { sendCancellationMail } from "../utils/mail.util.js";
 
 const parseDateTime = (dateString, timeString) => {
     const [day, month, year] = dateString.split('/').map(Number);
@@ -134,13 +135,30 @@ const bookingController = {
             const newRoom = await Room.findOne({ roomNumber: inputRoomNumber });
 
             if (overlappingBookings.length === 0) {
+
+                 // Calculate total hours
+                 const totalHours = Math.floor((parsedEndDateTime - parsedStartDateTime) / (60 * 60 * 1000));
+
+                 // Round down start and end times to the nearest whole hour
+                 const roundedStartDateTime = new Date(parsedStartDateTime);
+                 roundedStartDateTime.setMinutes(0, 0, 0);
+ 
+                 const roundedEndDateTime = new Date(parsedEndDateTime);
+                 roundedEndDateTime.setMinutes(0, 0, 0);
+ 
+                 // Calculate total whole hours
+                 const totalWholeHours = Math.floor((roundedEndDateTime - roundedStartDateTime) / (60 * 60 * 1000));
+ 
+                 // Multiply total whole hours with the price
+                 const totalPrice = totalWholeHours * foundRoom.price;
+ 
                 const updateBooking = await Bookings.findByIdAndUpdate(bookingId, {
                     ...req.body,
                     startDateTime: parsedStartDateTime,
                     endDateTime: parsedEndDateTime,
                     roomId: newRoom._id,
                     roomNumber: newRoom.roomNumber,
-                    amountRecived: foundRoom.price || req.body.amountRecived
+                    amountRecived: totalPrice
                 }, { new: true });
 
                 // console.log(JSON.stringify(updateBooking));
@@ -204,6 +222,8 @@ const bookingController = {
             foundBooking.checkoutTime = currentTime;
 
             await foundBooking.save();
+
+           await sendCancellationMail(startTime, startDate, endTime, endDate, foundBooking);
 
             res.status(200).json({ message: "Booking cancelled successfully", Data: { ...foundBooking._doc } });
 

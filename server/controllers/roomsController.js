@@ -35,9 +35,8 @@ const roomsController = {
             const parsedEndDateTime = parseDateTime(endDate, endTime);
 
 
-            if(parsedStartDateTime >= parsedEndDateTime)
-            {
-                return res.status(403).json({message:"start date and time can't be equal to or greater than end date and time"});
+            if (parsedStartDateTime >= parsedEndDateTime) {
+                return res.status(403).json({ message: "start date and time can't be equal to or greater than end date and time" });
             }
             // console.log(parsedEndDateTime);
 
@@ -72,6 +71,10 @@ const roomsController = {
 
             const foundRoom = await Room.findById(roomId);
 
+
+
+
+
             console.log(foundRoom);
 
             if (!foundRoom) {
@@ -83,15 +86,23 @@ const roomsController = {
             const startTime = req.body.startTime;
             const endTime = req.body.endTime;
 
-            
+
 
             const parsedStartDateTime = parseDateTime(startDate, startTime);
             const parsedEndDateTime = parseDateTime(endDate, endTime);
 
+            const currDate = new Date();
 
-            if(parsedStartDateTime >= parsedEndDateTime)
-            {
-                return res.status(403).json({message:"start date and time can't be equal to or greater than end date and time"});
+            console.log(currDate);
+
+
+
+            if (currDate > parsedStartDateTime) {
+                return res.status(403).json({ message: "You can't book room in past" });
+            }
+
+            if (parsedStartDateTime >= parsedEndDateTime) {
+                return res.status(403).json({ message: "start date and time can't be equal to or greater than end date and time" });
             }
 
             const overlappingBookings = await Bookings.find({
@@ -104,18 +115,34 @@ const roomsController = {
             });
 
             if (overlappingBookings.length === 0) {
+                // Calculate total hours
+                const totalHours = Math.floor((parsedEndDateTime - parsedStartDateTime) / (60 * 60 * 1000));
+
+                // Round down start and end times to the nearest whole hour
+                const roundedStartDateTime = new Date(parsedStartDateTime);
+                roundedStartDateTime.setMinutes(0, 0, 0);
+
+                const roundedEndDateTime = new Date(parsedEndDateTime);
+                roundedEndDateTime.setMinutes(0, 0, 0);
+
+                // Calculate total whole hours
+                const totalWholeHours = Math.floor((roundedEndDateTime - roundedStartDateTime) / (60 * 60 * 1000));
+
+                // Multiply total whole hours with the price
+                const totalPrice = totalWholeHours * foundRoom.price;
+
                 const newBooking = new Bookings({
                     ...req.body,
-                    startDateTime: parsedStartDateTime,
-                    endDateTime: parsedEndDateTime,
+                    startDateTime: roundedStartDateTime,
+                    endDateTime: roundedEndDateTime,
                     roomId: roomId,
                     roomNumber: foundRoom.roomNumber,
-                    amountRecived: req.body.amountRecived || foundRoom.price
-                })
+                    amountRecived: totalPrice
+                });
                 // console.log(newBooking);
                 const savedBooking = await newBooking.save();
 
-                await sendMail(startTime,startDate,endTime,endDate,newBooking);
+                await sendMail(startTime, startDate, endTime, endDate, newBooking);
 
                 res.status(200).json({ message: "Room booked successfully", data: { ...savedBooking._doc } });
             } else {
@@ -133,8 +160,8 @@ const roomsController = {
 
             const foundRoom = await Room.findById(roomId);
 
-            if(!foundRoom)
-            res.status(404).json({ message: "No room with such id found"});
+            if (!foundRoom)
+                res.status(404).json({ message: "No room with such id found" });
 
             res.status(200).json({ message: "Found room Details", data: { ...foundRoom._doc } });
         } catch (err) {
